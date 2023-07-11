@@ -1,5 +1,6 @@
 from ..factories.connection_string_factory import create_connection_string
 from ..factories.embedding_factory import create_embedding
+from ..factories.database_factory import create_database
 import config
 import os
 
@@ -7,7 +8,7 @@ from langchain.vectorstores.pgvector import PGVector
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.document_loaders import PyPDFLoader
 from langchain.document_loaders import TextLoader
-from langchain.vectorstores.pgvector import DistanceStrategy
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 
 def upload(upload_file, collection_name):
@@ -22,19 +23,27 @@ def upload(upload_file, collection_name):
         file_extension = os.path.splitext(
             file_path)[1][1:]  # get the file_extension
 
+        text_splitter = RecursiveCharacterTextSplitter(
+            # Set a really small chunk size, just to show.
+            chunk_size=1024,
+            chunk_overlap=100,
+            length_function=len,
+        )
+
         if file_extension == "csv":
             loader = CSVLoader(file_path=file_path)
-            docs = loader.load_and_split()  # return a list of Document Objects
+            # return a list of Document Objects
+            docs = loader.load_and_split(text_splitter=text_splitter)
 
         elif file_extension == "pdf":
             loader = PyPDFLoader(file_path=file_path)
-            docs = loader.load_and_split()  # return a list of Document Objects
+            # return a list of Document Objects
+            docs = loader.load_and_split(text_splitter=text_splitter)
 
         elif file_extension == "txt":
-            print("reading txt file")
             loader = TextLoader(file_path=file_path)
-            docs = loader.load_and_split()  # return a list of Document Objects
-            print(type(docs))
+            # return a list of Document Objects
+            docs = loader.load_and_split(text_splitter=text_splitter)
         else:
             raise ValueError("Can't support " +
                              file_extension + " type, I'm sorry.")
@@ -45,15 +54,14 @@ def upload(upload_file, collection_name):
     connection_string = create_connection_string(
         "postgres")  # Creating Postgres connection string
 
-    database = PGVector.from_documents(
-        documents=docs,
-        embedding=embeddings,
-        collection_name=collection_name,
-        connection_string=connection_string,
-        distance_strategy=DistanceStrategy.COSINE,
-        openai_api_key=config.OPENAI_API_KEY,
-        pre_delete_collection=True,
-    )
+    # Creating Postgres Database
+    database = create_database("postgres", collection_name=collection_name,
+                               connection_string=connection_string, embeddings=embeddings)
+
+    page_contents = [doc.page_content for doc in docs]
+    metadatas = [doc.metadata for doc in docs]
+
+    database.add_texts(texts=page_contents, metadatas=metadatas)
 
     # Deleting the file in tmp, since it already exist in Database
     if os.path.isfile(file_path):

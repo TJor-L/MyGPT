@@ -54,3 +54,30 @@ def upload_view(request):
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
+
+
+@csrf_exempt
+def query_view(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            query = data.get('query')
+            model_name = data.get('model_name')
+            history = data.get('history')
+            with_memory = data.get('with_memory')
+            with_database = data.get('with_database')
+            collection_name = data.get('collection_name')
+
+            if not query:
+                return HttpResponseBadRequest('Query must not be empty.')
+
+            if with_database:
+                response = query(query, model_name, with_memory,
+                                 history, collection_name)
+            else:
+                response = chat(query, model_name, with_memory, history)
+
+            return JsonResponse(response, safe=False)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)

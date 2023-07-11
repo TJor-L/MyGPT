@@ -10,7 +10,7 @@
   </form>
   <script>
     document.getElementById('uploadForm').addEventListener('submit', function (event) {
-      event.preventDefault()  // 阻止表单默认提交行为
+      event.preventDefault()
 
       var file = document.getElementById('file').files[0]
       var collectionName = document.getElementById('collection_name').value
@@ -19,7 +19,7 @@
       formData.append('file', file)
       formData.append('collection_name', collectionName)
 
-      fetch('http://127.0.0.1:8000/upload/', {  // 你需要将 '/your_endpoint/' 替换为实际的后端接口
+      fetch('http://127.0.0.1:8000/upload/', { 
         method: 'POST',
         body: formData
       })

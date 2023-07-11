@@ -6,11 +6,10 @@ PGVECTOR_DATABASE = "testdb"
 PGVECTOR_USER = "test"
 PGVECTOR_PASSWORD = "test"
 
-# The part to choose in database
 
 # The part to fill openAI information
-OPENAI_MODEL_NAME = "gpt-3.5-turbo"
+OPENAI_MODEL_NAME = "gpt-4"
 OPENAI_TEMPERATURE = 0.7
 OPENAI_MAX_TOKENS = 1024
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "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"
 BUFFER_TOP_K = 5

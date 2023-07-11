@@ -1,35 +1,21 @@
 import config
 from langchain.vectorstores.pgvector import PGVector
 
+from langchain.vectorstores.pgvector import DistanceStrategy
 
-def create_connection_string(database_name="postgres", **kwargs):
 
-    if 'pgvector_driver' not in kwargs:
-        kwargs['pgvector_driver'] = config.PGVECTOR_DRIVER
+def create_database(database_name="postgres", collection_name="", connection_string="", embeddings="", **kwargs):
 
-    if 'pgvector_host' not in kwargs:
-        kwargs['pgvector_host'] = config.PGVECTOR_HOST
-
-    if 'pgvector_port' not in kwargs:
-        kwargs['pgvector_port'] = config.PGVECTOR_PORT
-
-    if 'pgvector_database' not in kwargs:
-        kwargs['pgvector_database'] = config.PGVECTOR_DATABASE
-
-    if 'pgvector_user' not in kwargs:
-        kwargs['pgvector_user'] = config.PGVECTOR_USER
-
-    if 'pgvector_password' not in kwargs:
-        kwargs['pgvector_password'] = config.PGVECTOR_PASSWORD
+    if 'openai_api_key' not in kwargs:
+        kwargs['openai_api_key'] = config.OPENAI_API_KEY
 
     if database_name == "postgres":
-        return PGVector.connection_string_from_db_params(
-            driver=kwargs['pgvector_driver'],
-            host=kwargs['pgvector_host'],
-            port=int(kwargs['pgvector_port']),
-            database=kwargs['pgvector_database'],
-            user=kwargs['pgvector_user'],
-            password=kwargs['pgvector_password'],
+        return PGVector.from_existing_index(
+            collection_name=collection_name,
+            connection_string=connection_string,
+            distance_strategy=DistanceStrategy.COSINE,
+            openai_api_key=config.OPENAI_API_KEY,
+            embedding=embeddings
         )
     else:
         raise ValueError("Database does not exist!")
